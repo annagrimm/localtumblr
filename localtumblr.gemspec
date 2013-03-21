@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = Localtumblr::VERSION
   spec.authors       = ["Alex Melman"]
   spec.email         = ["amelman5@gmail.com"]
-  spec.description   = %q{Tumblr themes on your local environment}
+  spec.description   = %q{Tumblr theme previews on your local environment}
   spec.summary       = %q{A local environment on which Tumblr themes can be run.}
   spec.homepage      = ""
   spec.license       = "MIT"
@@ -24,7 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "webmock"
   spec.add_development_dependency "vcr"
   spec.add_development_dependency "oj"
-  spec.add_development_dependency "pry"
 
   spec.add_dependency "activesupport"
   spec.add_dependency "faraday"
