@@ -102,6 +102,51 @@
                 <img src="{PhotoURL-500}" class="post-photo" alt="{PhotoAlt}" width="340">
             {/block:Photo}
 
+            {block:Video}
+                <div class="video-player">
+                    {Video-400}
+                </div>
+                {block:Caption}
+                <div class="caption">
+                    {Caption}
+                </div>
+                {/block:Caption}
+            {/block:Video}
+
+            {block:Text}
+                <h1 class="caption">
+                    {block:Title}
+                        {Title}
+                    {/block:Title}
+                </h1>
+                <div class="body">
+                    {Body}
+                </div>
+            {/block:Text}
+
+            {block:Link}
+                <a class="link" href="{URL}" target="_blank" onclick="_gaq.push(['_trackEvent', '{PostType}', 'post click', '{PostID}']);">
+                    <div class="h-wrap">
+                        <h1 class="name">{Name}</h1>
+                    </div>
+                    <div class="link-icon"></div>
+                    <div class="overlay"></div>
+                    {block:Description}
+                        {Description}
+                    {/block:Description}
+                </a>
+            {/block:Link}
+
+            {block:Quote}
+                <h1 class="quote">
+                    <span class="quotation-mark">&ldquo;</span>{Quote}<span class="quotation-mark">&rdquo;</span>
+                </h1>
+                {block:Source}
+                <p class="source">
+                    <span class="dash">&mdash;</span> {Source}
+                </p>
+                {/block:Source}
+            {/block:Quote}
 
                 <!-- Begin Social Bar -->
                 <section class="social-bar">

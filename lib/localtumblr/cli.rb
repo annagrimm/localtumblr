@@ -11,10 +11,9 @@ module Localtumblr
           post_opts[:tag] = opts['tumblr-post-tag'] unless opts['tumblr-post-tag'].nil?
           post_opts[:type] = opts['tumblr-post-type'] unless opts['tumblr-post-type'].nil?
           posts = Localtumblr::Post.from_blog(opts['tumblr-base-hostname'], opts['tumblr-consumer-key'], post_opts)
-          puts "POSTS: #{posts}"
         end
         output = opts[:output]
-        template = Localtumblr::Template.from_file(opts[:file])
+        template = Localtumblr::Template.from_file(opts[:file], :debug => true)
         template.posts = posts unless posts.nil?
         puts template.parse if output.nil?
       end
@@ -29,6 +28,8 @@ module Localtumblr
           on :k, 'tumblr-consumer-key=', "The consumer key for the Tumblr application linked to your blog"
           on :t, 'tumblr-post-tag=', "Import posts with a specified tag"
           on :T, 'tumblr-post-type=', "Import posts with a specified type"
+          on :p, 'tumblr-post-id=', "Imports the post specified by an ID and sets the page as the post's permalink page"
+          on :d, 'debug', "Enable debug mode"
           on :v, :version, "Display the Localtumblr version" do
             puts "Localtumblr version #{Localtumblr::VERSION} on Ruby #{RUBY_VERSION}"
             exit

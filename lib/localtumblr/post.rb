@@ -3,19 +3,14 @@ require 'faraday'
 require 'multi_json'
 
 module Localtumblr
-  class Post
-    attr_reader :id
-
-    def initialize(args)
-      args.each do |k, v|
-        instance_variable_set("@#{k}", v)
+  class Post < Hash
+    def initialize(attrs)
+      attrs.each do |k, v|
+        self[k] = v
       end
     end
 
     def self.from_blog(hostname, consumer_key, opts={})
-      #conn = Faraday.new(url: 'http://api.tumblr.com') do |faraday|
-      #  faraday.response :net_http
-      #end
       posts = []
       req_opts = {
         api_key: consumer_key
@@ -27,7 +22,6 @@ module Localtumblr
       if response.status == 200
         parse_response(response.body).each do |post|
           posts << (p = Post.new(post))
-          puts p.id
         end
       end
       posts

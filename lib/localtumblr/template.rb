@@ -5,16 +5,18 @@ module Localtumblr
     attr_accessor :source
     attr_accessor :posts
 
-    def self.from_file(filename)
+    def self.from_file(filename, args={})
       source = ''
       File.open(filename, "r") do |f|
         source = f.read
       end
-      Template.new(source)
+      Template.new(source, args)
     end
 
-    def initialize(template, blocks={}, variables={})
+    def initialize(template, args={})
       @source = template
+
+      @debug = args.key?(:debug) ? args[:debug] : false
 
       @tumblr_variables = {}
       @tumblr_variables[:title] = "The Title" # args[:title]
@@ -33,22 +35,24 @@ module Localtumblr
     end
 
     def puts_with_indent(str)
-      puts @indent + str.gsub("\n", "\n#{@indent}") # "#{@indent}#{str}"
+      puts @indent + str.gsub("\n", "\n#{@indent}") if @debug
     end
 
     def inc_indent
-      @indent_count += 1
-      @indent = ' ' * (@indent_width * @indent_count)
+      if @debug
+        @indent_count += 1
+        @indent = ' ' * (@indent_width * @indent_count)
+      end
     end
 
     def dec_indent
-      @indent_count -= 1 if @indent_count > 0
-      @indent = ' ' * (@indent_width * @indent_count)
+      if @debug
+        @indent_count -= 1 if @indent_count > 0
+        @indent = ' ' * (@indent_width * @indent_count)
+      end
     end
 
     def parse(*args)
-      # puts_with_indent "PARSE: #{args[0]}"
-      # puts "SOURCE: #{args[1]}"
       source = args.none? ? @source : args[1]
       template = source.dup
 
@@ -57,12 +61,10 @@ module Localtumblr
       r = /(?<block>\{block:(?<block_name>\w+)\}(?<block_content>.*?)\{\/block:\k<block_name>\})|(?<variable>\{(?<variable_name>\w[\w\d-]+)\})/m
       i = 0
       source.scan(r) do |block, block_name, block_content, variable, variable_name|
-        # puts_with_indent "*****SCAN ##{i}"
         i += 1
         if !block.nil?
           val = ''
           puts_with_indent "Enter block: #{block_name}"
-
           inc_indent
 
           case block_name
@@ -71,17 +73,25 @@ module Localtumblr
 
             @posts.each do |post|
               puts_with_indent "Enter post ##{j}"
+              inc_indent
               j += 1
 
-              inc_indent
-
-              @post_variables = {
-                post_id: post.id.to_s
-              }
+              @post_variables = {}
+              post.each do |k, v|
+                case k
+                when :id
+                  @post_variables[:post_id] = v.to_s
+                when :timestamp
+                  @post_variables[:timestamp] = v
+                  @post_variables[:date] = Time.at(v)
+                else
+                  @post_variables[k] = v
+                end
+              end
+              puts @post_variables
               val += parse(block_name, block_content, post)
 
               dec_indent
-
               puts_with_indent "Exit post ##{j}"
             end
           else
@@ -91,12 +101,10 @@ module Localtumblr
               val = parse(block_name, block_content)
             #end
           end
-          puts "*~*~* NOT FOUND *~*~*" if source.index(block).nil?
           rs = /(?<block>\{block:(?<block_name>\w+)\}.*?\{\/block:\k<block_name>\})/m
           template = template.sub(rs, val)
 
           dec_indent
-
           puts_with_indent "Exit block: #{block_name}"
         else
           puts_with_indent "Variable: #{variable_name} / #{variable_name.underscore.to_sym} = #{@post_variables[variable_name.underscore.to_sym]}"
@@ -110,12 +118,6 @@ module Localtumblr
         end
       end
 
-      if template == source
-        puts "***NO CHANGE***"
-      end
-
-      # binding.pry
-      # puts_with_indent template
       template
     end
 
