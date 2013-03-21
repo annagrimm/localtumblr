@@ -79,4 +79,84 @@
         {/block:IfGoogleAnalyticsID}
     </head>
 
+    <body>
+        {block:IndexPage}
+        <!-- Posts Section -->
+        <section id="posts">
+            {block:Posts}
+            <!-- Post -->
+            <article id="post-{PostID}" class="post {TagsAsClasses} {PostType}">
+            <script>_gaq.push(['_trackEvent', '{PostType}', 'impression', '{PostID}']);</script>
+            {block:Photo}
+                <div class="photo-post-overlay"></div>
+                {block:Caption}
+                <a class="photo-post-info-wrap" href="{Permalink}" onclick="_gaq.push(['_trackEvent', '{PostType}', 'post click', '{PostID}']);">
+                </a>
+                <section class="photo-post-info">
+                    <div class="photo-post-info-content-wrap">
+                        {Caption}
+                    </div>
+                    <!--<span class="read-more">...READ MORE</span>-->
+                </section>
+                {/block:Caption}
+                <img src="{PhotoURL-500}" class="post-photo" alt="{PhotoAlt}" width="340">
+            {/block:Photo}
+
+
+                <!-- Begin Social Bar -->
+                <section class="social-bar">
+                    <!--<div class="bg bg-left"></div>-->
+                    <div class="main">
+                    <!-- Facebook Like Button -->
+                    <div class="fb-like" data-href="{Permalink}" data-send="false" data-layout="box_count" data-width="50" data-show-faces="false" data-font="lucida grande" ref="{PostType}:{PostID}"></div>
+                    <!-- Tweet Button -->
+                    <div class="tweet" data-post-type="{PostType}" data-post-id="{PostID}">
+                        <a href="https://twitter.com/share" class="twitter-share-button" data-url="{ShortURL}" data-text="" data-count="none"></a>
+                    </div>
+                    {block:Quote}
+                    <!-- Tumblr View Post -->
+                    <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                    {/block:Quote}
+                    {block:Text}
+                    <!-- Tumblr View Post -->
+                    <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                    {/block:Text}
+                    {block:Photo}
+                    <!-- Tumblr View Post -->
+                    <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                    {/block:Photo}
+                    {block:Video}
+                    <!-- Tumblr View Post -->
+                    <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                    {/block:Video}
+                    <!-- Tumblr Like Post -->
+                    <a href="{Permalink}" class="social-bar-icon like-post tumblr-like" onclick="_gaq.push(['_trackEvent', '{PostType}', 'heart', '{PostID}']);">Like</a>
+                    <!-- Tumblr Reblog -->
+                    <a href="{ReblogURL}" class="social-bar-icon reblog" target="_blank" onclick="_gaq.push(['_trackEvent', '{PostType}', 'reblog', '{PostID}']);">Reblog</a>
+                </div>
+                <!-- Pub Date -->
+                <time datetime="{Year}-{MonthNumberWithZero}-{MonthNumberWithZero}" class="pubdate" pubdate>{MonthNumberWithZero}-{DayOfMonthWithZero}-{Year}</time>
+                <div class="bg bg-right"></div>
+            </section>
+            <!-- Social Bar -->
+        </article>
+        <!-- Post -->
+        {/block:Posts}
+        <div id="load-more-posts">
+            <a href="#">Load more posts</a>
+        </div>
+    </section>
+    {block:Pagination}
+        <nav id="page-nav">
+        {block:PreviousPage}
+            <a href="{PreviousPage}" id="page-nav-prev" onclick="_gaq.push(['_trackEvent', 'pagination', 'previous', '{CurrentPage}']);">&lt; Prev</a>
+        {/block:PreviousPage}
+        {block:NextPage}
+            <a href="{NextPage}" id="page-nav-next" onclick="_gaq.push(['_trackEvent', 'pagination', 'next', '{CurrentPage}']);">Next &gt;</a>
+        {/block:NextPage}
+        </nav>
+    {/block:Pagination}
+    <!-- Posts Section -->
+    {/block:IndexPage}
+    </body>
 </body>

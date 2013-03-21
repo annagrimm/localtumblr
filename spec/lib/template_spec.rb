@@ -10,7 +10,7 @@ describe Localtumblr::Template do
   describe ".from_file" do
     let(:template) { Localtumblr::Template.from_file(File.join(File.dirname(__FILE__), "../support/tumblr-index.html")) }
 
-    it "reads a file" do
+    it "opens a file" do
       expect { template }.not_to raise_error(Errno::ENOENT)
     end
 

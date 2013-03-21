@@ -12,12 +12,18 @@ module Localtumblr
       end
     end
 
-    def self.from_blog(hostname, consumer_key)
+    def self.from_blog(hostname, consumer_key, opts={})
       #conn = Faraday.new(url: 'http://api.tumblr.com') do |faraday|
       #  faraday.response :net_http
       #end
-      response = Faraday.get "http://api.tumblr.com/v2/blog/#{hostname}/posts", { api_key: consumer_key }
       posts = []
+      req_opts = {
+        api_key: consumer_key
+      }
+      req_opts[:type] = opts[:type] if opts.key?(:type)
+      req_opts[:tag] = opts[:tag] if opts.key?(:tag)
+      response = Faraday.get "http://api.tumblr.com/v2/blog/#{hostname}/posts", req_opts
+      puts response.to_hash
       if response.status == 200
         parse_response(response.body).each do |post|
           posts << (p = Post.new(post))
