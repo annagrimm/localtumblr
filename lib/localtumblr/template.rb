@@ -34,11 +34,11 @@ module Localtumblr
 
       @post_variables = {}
       @post_photo_alt_sizes = {
-        '500' => 0,
-        '400' => 1,
+        '500' => 4,
+        '400' => 3,
         '250' => 2,
-        '100' => 3,
-        '75' => 4
+        '100' => 1,
+        '75' => 0
       }
 
       @indent_width = 4
@@ -87,7 +87,6 @@ module Localtumblr
             @posts.each do |post|
               puts_with_indent "Enter post ##{j}"
               inc_indent
-              j += 1
 
               @post_variables = {}
               post.each do |k, v|
@@ -106,6 +105,7 @@ module Localtumblr
 
               dec_indent
               puts_with_indent "Exit post ##{j}"
+              j += 1
             end
           when 'Text', 'Photo', 'Panorama', 'Photoset', 'Quote', 'Link', 'Chat', 'Audio', 'Video', 'Answer'
             if @post_variables.any?
@@ -134,7 +134,21 @@ module Localtumblr
             when /PhotoURL-(\d{2,3}\w{0,2})/
               # ***** TODO: PHOTO POSTS MUST BE EXPANDED ALSO INTO INDIVIDUAL PHOTOS *****
               # Test on Tumblr to see if entire block is duplicated or just the photo tags.
-              val = @post_variables[:photos][0][:alt_sizes][@post_photo_alt_sizes[$1]][:url]
+              if @post_variables[:photos][0][:alt_sizes].count > @post_photo_alt_sizes[$1]
+                alt_size = @post_variables[:photos][0][:alt_sizes][0 - (@post_photo_alt_sizes[$1] + 1)]
+              else
+                alt_size = @post_variables[:photos][0][:alt_sizes].first
+              end
+              val = alt_size[:url]
+            when /Photo(Width|Height)-(\d{3})/
+              if @post_variables[:photos][0][:alt_sizes].count > @post_photo_alt_sizes[$2]
+                alt_size = @post_variables[:photos][0][:alt_sizes][0 - (@post_photo_alt_sizes[$2] + 1)]
+              else
+                alt_size = @post_variables[:photos][0][:alt_sizes].first
+              end
+              val = alt_size[$1.downcase.to_sym].to_s
+            when 'PhotoAlt'
+              val = @post_variables[:photos][0][:caption]
             end
             if @post_variables.key?(variable_name.underscore.to_sym)
               val = @post_variables[variable_name.underscore.to_sym]
