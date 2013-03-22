@@ -13,9 +13,15 @@ module Localtumblr
           posts = Localtumblr::Post.from_blog(opts['tumblr-base-hostname'], opts['tumblr-consumer-key'], post_opts)
         end
         output = opts[:output]
-        template = Localtumblr::Template.from_file(opts[:file], :debug => true)
+        debug = opts[:debug]
+        template = Localtumblr::Template.from_file(opts[:file], :debug => debug)
         template.posts = posts unless posts.nil?
-        puts template.parse if output.nil?
+        template.parse
+        if output.nil?
+          puts template.to_s
+        else
+          template.to_file(output)
+        end
       end
 
       def set_opts #(args)

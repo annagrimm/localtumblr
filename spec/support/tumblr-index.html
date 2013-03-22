@@ -46,22 +46,16 @@
         <script src="http://gatorade-poy.s3.amazonaws.com/dev/javascripts/index.min.js"></script>
         {/block:IndexPage}
 
-        {block:IfUseBugherd}
-        <!-- BugHerd -->
-        <!--
-            BugHerd will appear if the user has a Bugherd plugin in his
-            browser and Bugherd is enabled for the site, regardless of
-            the IfUseBugherd setting on Tumblr.
-        -->
+        {block:IfBugherdProjectKey}
         <script>
             (function (d, t) {
                 var bh = d.createElement(t), s = d.getElementsByTagName(t)[0];
                 bh.type = 'text/javascript';
-                bh.src = '//www.bugherd.com/sidebarv2.js?apikey=auljxdgybrzsuexpygdxhq';
+                bh.src = '//www.bugherd.com/sidebarv2.js?apikey=ihzyfvqjdpi5oq3b02s2qw';
                 s.parentNode.insertBefore(bh, s);
             })(document, 'script');
         </script>
-        {/block:IfUseBugherd}
+        {/block:IfBugherdProjectKey}
 
         {block:IfGoogleAnalyticsID}
         <!-- Google Analytics -->
@@ -204,4 +198,4 @@
     <!-- Posts Section -->
     {/block:IndexPage}
     </body>
-</body>
+</html>

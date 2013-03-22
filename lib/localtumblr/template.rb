@@ -1,8 +1,13 @@
 require 'active_support/core_ext/string'
 require 'pry'
+
 module Localtumblr
-  class Template # extend self
-    attr_accessor :source
+  class Template
+    UNPARSED_TEMPLATE_ERROR_MSG = "Template has not yet been parsed. Use Localtumblr::Template.parse to parse the template."
+    UnparsedTemplatedError = Class.new(StandardError)
+
+    attr_accessor :source_template
+    attr_reader :parsed_template
     attr_accessor :posts
 
     def self.from_file(filename, args={})
@@ -14,7 +19,7 @@ module Localtumblr
     end
 
     def initialize(template, args={})
-      @source = template
+      @source_template = template
 
       @debug = args.key?(:debug) ? args[:debug] : false
 
@@ -28,6 +33,13 @@ module Localtumblr
       }
 
       @post_variables = {}
+      @post_photo_alt_sizes = {
+        '500' => 0,
+        '400' => 1,
+        '250' => 2,
+        '100' => 3,
+        '75' => 4
+      }
 
       @indent_width = 4
       @indent_count = 0
@@ -53,7 +65,8 @@ module Localtumblr
     end
 
     def parse(*args)
-      source = args.none? ? @source : args[1]
+      root = args.none?
+      source = root ? @source_template : args[1]
       template = source.dup
 
       post_data = args[2] if args.count >= 3
@@ -88,14 +101,21 @@ module Localtumblr
                   @post_variables[k] = v
                 end
               end
-              puts @post_variables
               val += parse(block_name, block_content, post)
+              @post_variables = {}
 
               dec_indent
               puts_with_indent "Exit post ##{j}"
             end
+          when 'Text', 'Photo', 'Panorama', 'Photoset', 'Quote', 'Link', 'Chat', 'Audio', 'Video', 'Answer'
+            if @post_variables.any?
+              if @post_variables[:type] == block_name.downcase
+                val = parse(block_name, block_content)
+              end
+            end
           else
             block_key = block_name.underscore.to_sym
+
             # TODO: Fix this. Blocks must be enabled/disabled based on settings.
             #if @tumblr_blocks.key?(block_key) && @tumblr_blocks[block_key]
               val = parse(block_name, block_content)
@@ -109,16 +129,42 @@ module Localtumblr
         else
           puts_with_indent "Variable: #{variable_name} / #{variable_name.underscore.to_sym} = #{@post_variables[variable_name.underscore.to_sym]}"
           val = ''
-          if @post_variables.key?(variable_name.underscore.to_sym)
-            val = @post_variables[variable_name.underscore.to_sym]
-          elsif @tumblr_variables.key?(variable_name.underscore.to_sym)
+          if @post_variables.any?
+            case variable_name
+            when /PhotoURL-(\d{2,3}\w{0,2})/
+              # ***** TODO: PHOTO POSTS MUST BE EXPANDED ALSO INTO INDIVIDUAL PHOTOS *****
+              # Test on Tumblr to see if entire block is duplicated or just the photo tags.
+              val = @post_variables[:photos][0][:alt_sizes][@post_photo_alt_sizes[$1]][:url]
+            end
+            if @post_variables.key?(variable_name.underscore.to_sym)
+              val = @post_variables[variable_name.underscore.to_sym]
+            end
+          end
+          if @tumblr_variables.key?(variable_name.underscore.to_sym)
             val = @tumblr_variables[variable_name.underscore.to_sym]
           end
           template = template.sub(variable, val)
         end
       end
 
+      if root
+        @parsed_template = template
+        return self # Make chainable if root
+      end
       template
+    end
+    alias_method :to_html, :parse
+
+    def to_s
+      raise UnparsedTemplatedError, UNPARSED_TEMPLATE_ERROR_MSG if @parsed_template.nil?
+      @parsed_template
+    end
+
+    def to_file(filename)
+      raise UnparsedTemplatedError, UNPARSED_TEMPLATE_ERROR_MSG if @parsed_template.nil?
+      File.open(filename, 'w') do |f|
+        f.puts @parsed_template
+      end
     end
 
     protected
