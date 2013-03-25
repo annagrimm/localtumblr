@@ -5,13 +5,18 @@ module Localtumblr
   class CLI
     class << self
       def start(*args)
-        opts = set_opts #(args)
+        opts = set_opts(args)
         if !opts['tumblr-base-hostname'].nil? && !opts['tumblr-consumer-key'].nil?
           post_opts = {}
           post_opts[:tag] = opts['tumblr-post-tag'] unless opts['tumblr-post-tag'].nil?
           post_opts[:type] = opts['tumblr-post-type'] unless opts['tumblr-post-type'].nil?
           posts = Localtumblr::Post.from_blog(opts['tumblr-base-hostname'], opts['tumblr-consumer-key'], post_opts)
         end
+        if opts[:file].blank?
+          puts "File is required"
+          exit
+        end
+
         output = opts[:output]
         debug = opts[:debug]
         template = Localtumblr::Template.from_file(opts[:file], :debug => debug)
@@ -24,8 +29,8 @@ module Localtumblr
         end
       end
 
-      def set_opts #(args)
-        opts = Slop.parse ARGV, help: true do
+      def set_opts(args)
+        opts = Slop.parse args, help: true do
           banner 'Usage: localtumblr [options]'
 
           on :o, :output=, "Set the output"
@@ -40,9 +45,6 @@ module Localtumblr
             puts "Localtumblr version #{Localtumblr::VERSION} on Ruby #{RUBY_VERSION}"
             exit
           end
-
-          # last_arg = ARGV.last
-          # Localtumblr::CLI.template = Localtumblr::Template.from_file(last_arg)
         end
 
         # exit if opts.help?

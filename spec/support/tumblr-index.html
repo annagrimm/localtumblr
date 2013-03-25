@@ -5,16 +5,17 @@
 
         <!-- General info -->
         <meta charset="utf-8">
-        <meta name="viewport" content="width=1380">
         <meta name="description" content="{block:IndexPage}{block:Description}{MetaDescription}{/block:Description}{/block:IndexPage}{block:PermalinkPage}{block:PostSummary}{PostSummary}{/block:PostSummary}{/block:PermalinkPage}">
 
-        <!-- Facebook Admin (Set to BF Edgar) -->
-        <meta property="fb:admins" content="100003808405975">
-        <meta property="fb:app_id" content="158149081007640">
-
         <!-- Tumblr theme variables -->
-        <meta name="if:Use Bugherd" content="0">
+        <meta name="text:Bugherd Project Key" content="">
         <meta name="text:Google Analytics ID" content="">
+        <meta name="text:Facebook App ID" content="">
+        <meta name="text:Facebook Admins" content="">
+
+        <!-- Facebook app/admin info -->
+        {block:IfFacebookAdmins}<meta property="fb:admins" content="{text:FacebookAdmins}">{/block:IfFacebookAdmins}
+        {block:IfFacebookAppId}<meta property="fb:app_id" content="{text:FacebookAppId}">{/block:IfFacebookAppId}
 
         <!-- Misc -->
         <link rel="shortcut icon" href="{Favicon}">
@@ -34,7 +35,8 @@
         <![endif]-->
 
         <!-- Scripts -->
-        <script src="http://gatorade-poy.s3.amazonaws.com/dev/javascripts/application.min.js"></script>
+        <script src="http://montana-stepoutofbounds.s3.amazonaws.com/dev/javascripts/jquery-1.9.1.js"></script>
+        <script src="http://montana-stepoutofbounds.s3.amazonaws.com/dev/javascripts/application.js"></script>
         {block:IndexPage}
         <!-- Set tag page -->
         <script>
@@ -43,7 +45,7 @@
             tagPage = "{tag}";
             {/block:TagPage}
         </script>
-        <script src="http://gatorade-poy.s3.amazonaws.com/dev/javascripts/index.min.js"></script>
+        <!--<script src="http://montana-stepoutofbounds.s3.amazonaws.com/dev/javascripts/index.js"></script>-->
         {/block:IndexPage}
 
         {block:IfBugherdProjectKey}
@@ -74,128 +76,131 @@
     </head>
 
     <body>
-        {block:IndexPage}
-        <!-- Posts Section -->
-        <section id="posts">
-            {block:Posts}
-            <!-- Post -->
-            <article id="post-{PostID}" class="post {TagsAsClasses} {PostType}">
-            <script>_gaq.push(['_trackEvent', '{PostType}', 'impression', '{PostID}']);</script>
-            {block:Photo}
-                <div class="photo-post-overlay"></div>
-                {block:Caption}
-                <a class="photo-post-info-wrap" href="{Permalink}" onclick="_gaq.push(['_trackEvent', '{PostType}', 'post click', '{PostID}']);">
-                </a>
-                <section class="photo-post-info">
-                    <div class="photo-post-info-content-wrap">
-                        {Caption}
-                    </div>
-                    <!--<span class="read-more">...READ MORE</span>-->
-                </section>
-                {/block:Caption}
-                <img src="{PhotoURL-500}" class="post-photo" alt="{PhotoAlt}" width="340">
-            {/block:Photo}
+        {block:IfFacebookAppId}
+        <!-- Facebook SDK -->
+        <div id="fb-root"></div>
+        <script>
+          window.fbAsyncInit = function() {
+            // init the FB JS SDK
+            FB.init({
+              appId      : '{text:FacebookAppId}', // App ID from the App Dashboard
+              status     : true, // check the login status upon init?
+              cookie     : false, // set sessions cookies to allow your server to access the session?
+              xfbml      : true  // parse XFBML tags on this page?
+            });
 
-            {block:Video}
-                <div class="video-player">
-                    {Video-400}
-                </div>
-                {block:Caption}
-                <div class="caption">
-                    {Caption}
-                </div>
-                {/block:Caption}
-            {/block:Video}
+            /* Facebook like event */
+            FB.Event.subscribe('edge.create', function(response, widget) {
+                var ref = widget._attr.ref.split(':');
+                var postType = ref[0];
+                var postID = ref[1];
+                _gaq.push(['_trackEvent', postType, 'like', postID]);
+            });
 
-            {block:Text}
-                <h1 class="caption">
-                    {block:Title}
-                        {Title}
-                    {/block:Title}
-                </h1>
-                <div class="body">
-                    {Body}
-                </div>
-            {/block:Text}
+          };
 
-            {block:Link}
-                <a class="link" href="{URL}" target="_blank" onclick="_gaq.push(['_trackEvent', '{PostType}', 'post click', '{PostID}']);">
-                    <div class="h-wrap">
-                        <h1 class="name">{Name}</h1>
-                    </div>
-                    <div class="link-icon"></div>
-                    <div class="overlay"></div>
-                    {block:Description}
-                        {Description}
-                    {/block:Description}
-                </a>
-            {/block:Link}
+          // Load the SDK's source Asynchronously
+          // Note that the debug version is being actively developed and might
+          // contain some type checks that are overly strict.
+          // Please report such bugs using the bugs tool.
+          (function(d, debug){
+             var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+             if (d.getElementById(id)) {return;}
+             js = d.createElement('script'); js.id = id; js.async = true;
+             js.src = "//connect.facebook.net/en_US/all" + (debug ? "/debug" : "") + ".js";
+             ref.parentNode.insertBefore(js, ref);
+           }(document, /*debug*/ false));
+        </script>
+        <!-- Facebook SDK -->
+        {/block:IfFacebookAppId}
 
-            {block:Quote}
-                <h1 class="quote">
-                    <span class="quotation-mark">&ldquo;</span>{Quote}<span class="quotation-mark">&rdquo;</span>
-                </h1>
-                {block:Source}
-                <p class="source">
-                    <span class="dash">&mdash;</span> {Source}
-                </p>
-                {/block:Source}
-            {/block:Quote}
+        <div id="main-container">
+            <header id="site-header">
+                <h1>Montana</h1>
+                <h2>Connect Out of Bounds</h2>
+                <p>Share your <b>#MontanaMoment</b> and tap into the<br>
+                    community's experiences to create unforgettable new ones.</p>
+                <p id="explore-mt">Explore the <b>#MontanaMoment</b>(s) below<br>and add your own!</p>
+                <img id="header-arrow" src="http://montana-stepoutofbounds.s3.amazonaws.com/dev/images/header-arrow.png" width="65" height="47" alt="">
+            </header>
 
-                <!-- Begin Social Bar -->
-                <section class="social-bar">
-                    <!--<div class="bg bg-left"></div>-->
-                    <div class="main">
-                    <!-- Facebook Like Button -->
-                    <div class="fb-like" data-href="{Permalink}" data-send="false" data-layout="box_count" data-width="50" data-show-faces="false" data-font="lucida grande" ref="{PostType}:{PostID}"></div>
-                    <!-- Tweet Button -->
-                    <div class="tweet" data-post-type="{PostType}" data-post-id="{PostID}">
-                        <a href="https://twitter.com/share" class="twitter-share-button" data-url="{ShortURL}" data-text="" data-count="none"></a>
-                    </div>
-                    {block:Quote}
-                    <!-- Tumblr View Post -->
-                    <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
-                    {/block:Quote}
-                    {block:Text}
-                    <!-- Tumblr View Post -->
-                    <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
-                    {/block:Text}
+            {block:IndexPage}
+            <!-- Posts Section -->
+            <section id="posts">
+                {block:Posts}
+                <!-- Post -->
+                <article id="post-{PostID}" class="post {TagsAsClasses} {PostType}">
+                    <script>_gaq.push(['_trackEvent', '{PostType}', 'impression', '{PostID}']);</script>
                     {block:Photo}
-                    <!-- Tumblr View Post -->
-                    <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                    <div class="photo-post-overlay"></div>
+                        {block:Caption}
+                        <a class="photo-post-info-wrap" href="{Permalink}" onclick="_gaq.push(['_trackEvent', '{PostType}', 'post click', '{PostID}']);">
+                        </a>
+                        <section class="photo-post-info">
+                            <div class="photo-post-info-content-wrap">
+                                {Caption}
+                            </div>
+                        </section>
+                        {/block:Caption}
+                    <img src="{PhotoURL-500}" class="post-photo" alt="{PhotoAlt}" width="340">
                     {/block:Photo}
-                    {block:Video}
-                    <!-- Tumblr View Post -->
-                    <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
-                    {/block:Video}
-                    <!-- Tumblr Like Post -->
-                    <a href="{Permalink}" class="social-bar-icon like-post tumblr-like" onclick="_gaq.push(['_trackEvent', '{PostType}', 'heart', '{PostID}']);">Like</a>
-                    <!-- Tumblr Reblog -->
-                    <a href="{ReblogURL}" class="social-bar-icon reblog" target="_blank" onclick="_gaq.push(['_trackEvent', '{PostType}', 'reblog', '{PostID}']);">Reblog</a>
-                </div>
-                <!-- Pub Date -->
-                <time datetime="{Year}-{MonthNumberWithZero}-{MonthNumberWithZero}" class="pubdate" pubdate>{MonthNumberWithZero}-{DayOfMonthWithZero}-{Year}</time>
-                <div class="bg bg-right"></div>
-            </section>
-            <!-- Social Bar -->
-        </article>
-        <!-- Post -->
-        {/block:Posts}
-        <div id="load-more-posts">
-            <a href="#">Load more posts</a>
+
+
+                    <!-- Begin Social Bar -->
+                    <section class="social-bar">
+                        <!--<div class="bg bg-left"></div>-->
+                        <div class="main">
+                        <!-- Facebook Like Button -->
+                        <div class="fb-like" data-href="{Permalink}" data-send="false" data-layout="box_count" data-width="50" data-show-faces="false" data-font="lucida grande" ref="{PostType}:{PostID}"></div>
+                        <!-- Tweet Button -->
+                        <div class="tweet" data-post-type="{PostType}" data-post-id="{PostID}">
+                            <a href="https://twitter.com/share" class="twitter-share-button" data-url="{ShortURL}" data-text="" data-count="none"></a>
+                        </div>
+                        {block:Quote}
+                        <!-- Tumblr View Post -->
+                        <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                        {/block:Quote}
+                        {block:Text}
+                        <!-- Tumblr View Post -->
+                        <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                        {/block:Text}
+                        {block:Photo}
+                        <!-- Tumblr View Post -->
+                        <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                        {/block:Photo}
+                        {block:Video}
+                        <!-- Tumblr View Post -->
+                        <a href="{Permalink}" class="social-bar-icon view-post last">View</a>
+                        {/block:Video}
+                        <!-- Tumblr Like Post -->
+                        <a href="{Permalink}" class="social-bar-icon like-post tumblr-like" onclick="_gaq.push(['_trackEvent', '{PostType}', 'heart', '{PostID}']);">Like</a>
+                        <!-- Tumblr Reblog -->
+                        <a href="{ReblogURL}" class="social-bar-icon reblog" target="_blank" onclick="_gaq.push(['_trackEvent', '{PostType}', 'reblog', '{PostID}']);">Reblog</a>
+                    </div>
+                    <!-- Pub Date -->
+                    <time datetime="{Year}-{MonthNumberWithZero}-{MonthNumberWithZero}" class="pubdate" pubdate>{MonthNumberWithZero}-{DayOfMonthWithZero}-{Year}</time>
+                    <div class="bg bg-right"></div>
+                </section>
+                <!-- Social Bar -->
+            </article>
+            <!-- Post -->
+            {/block:Posts}
+            <div id="load-more-posts">
+                <a href="#">Load more posts</a>
+            </div>
+        </section>
+        {block:Pagination}
+            <nav id="page-nav">
+            {block:PreviousPage}
+                <a href="{PreviousPage}" id="page-nav-prev" onclick="_gaq.push(['_trackEvent', 'pagination', 'previous', '{CurrentPage}']);">&lt; Prev</a>
+            {/block:PreviousPage}
+            {block:NextPage}
+                <a href="{NextPage}" id="page-nav-next" onclick="_gaq.push(['_trackEvent', 'pagination', 'next', '{CurrentPage}']);">Next &gt;</a>
+            {/block:NextPage}
+            </nav>
+            {/block:Pagination}
+        <!-- Posts Section -->
+        {/block:IndexPage}
         </div>
-    </section>
-    {block:Pagination}
-        <nav id="page-nav">
-        {block:PreviousPage}
-            <a href="{PreviousPage}" id="page-nav-prev" onclick="_gaq.push(['_trackEvent', 'pagination', 'previous', '{CurrentPage}']);">&lt; Prev</a>
-        {/block:PreviousPage}
-        {block:NextPage}
-            <a href="{NextPage}" id="page-nav-next" onclick="_gaq.push(['_trackEvent', 'pagination', 'next', '{CurrentPage}']);">Next &gt;</a>
-        {/block:NextPage}
-        </nav>
-    {/block:Pagination}
-    <!-- Posts Section -->
-    {/block:IndexPage}
     </body>
 </html>

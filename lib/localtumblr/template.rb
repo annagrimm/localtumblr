@@ -1,5 +1,4 @@
 require 'active_support/core_ext/string'
-require 'pry'
 
 module Localtumblr
   class Template
@@ -32,6 +31,7 @@ module Localtumblr
         tag_page:   true # false
       }
 
+      @posts = []
       @post_variables = {}
       @post_photo_alt_sizes = {
         '500' => 4,
