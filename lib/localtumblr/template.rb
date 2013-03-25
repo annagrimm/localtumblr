@@ -64,12 +64,10 @@ module Localtumblr
       end
     end
 
-    def parse(*args)
-      root = args.none?
-      source = root ? @source_template : args[1]
+    def parse(source=nil, args={})
+      root = source.nil?
+      source = root ? @source_template : source
       template = source.dup
-
-      post_data = args[2] if args.count >= 3
 
       r = /(?<block>\{block:(?<block_name>\w+)\}(?<block_content>.*?)\{\/block:\k<block_name>\})|(?<variable>\{(?<variable_name>\w[\w\d-]+)\})/m
       i = 0
@@ -100,7 +98,7 @@ module Localtumblr
                   @post_variables[k] = v
                 end
               end
-              val += parse(block_name, block_content, post)
+              val += parse(block_content)
               @post_variables = {}
 
               dec_indent
@@ -110,7 +108,14 @@ module Localtumblr
           when 'Text', 'Photo', 'Panorama', 'Photoset', 'Quote', 'Link', 'Chat', 'Audio', 'Video', 'Answer'
             if @post_variables.any?
               if @post_variables[:type] == block_name.downcase
-                val = parse(block_name, block_content)
+                if block_name == 'Photo'
+                  val = ''
+                  @post_variables[:photos].each do |photo|
+                    val += parse(block_content, photo: photo)
+                  end
+                else
+                  val = parse(block_content)
+                end
               end
             end
           else
@@ -118,7 +123,7 @@ module Localtumblr
 
             # TODO: Fix this. Blocks must be enabled/disabled based on settings.
             #if @tumblr_blocks.key?(block_key) && @tumblr_blocks[block_key]
-              val = parse(block_name, block_content)
+              val = parse(block_content)
             #end
           end
           rs = /(?<block>\{block:(?<block_name>\w+)\}.*?\{\/block:\k<block_name>\})/m
@@ -134,17 +139,19 @@ module Localtumblr
             when /PhotoURL-(\d{2,3}\w{0,2})/
               # ***** TODO: PHOTO POSTS MUST BE EXPANDED ALSO INTO INDIVIDUAL PHOTOS *****
               # Test on Tumblr to see if entire block is duplicated or just the photo tags.
-              if @post_variables[:photos][0][:alt_sizes].count > @post_photo_alt_sizes[$1]
-                alt_size = @post_variables[:photos][0][:alt_sizes][0 - (@post_photo_alt_sizes[$1] + 1)]
+              photo = args[:photo]
+              if photo[:alt_sizes].count > @post_photo_alt_sizes[$1]
+                alt_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[$1] + 1)]
               else
-                alt_size = @post_variables[:photos][0][:alt_sizes].first
+                alt_size = photo[:alt_sizes].first
               end
               val = alt_size[:url]
             when /Photo(Width|Height)-(\d{3})/
-              if @post_variables[:photos][0][:alt_sizes].count > @post_photo_alt_sizes[$2]
-                alt_size = @post_variables[:photos][0][:alt_sizes][0 - (@post_photo_alt_sizes[$2] + 1)]
+              photo = args[:photo]
+              if photo[:alt_sizes].count > @post_photo_alt_sizes[$2]
+                alt_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[$2] + 1)]
               else
-                alt_size = @post_variables[:photos][0][:alt_sizes].first
+                alt_size = photo[:alt_sizes].first
               end
               val = alt_size[$1.downcase.to_sym].to_s
             when 'PhotoAlt'
@@ -179,11 +186,6 @@ module Localtumblr
       File.open(filename, 'w') do |f|
         f.puts @parsed_template
       end
-    end
-
-    protected
-    def open_block(block)
-      parse(block)
     end
   end
 end
