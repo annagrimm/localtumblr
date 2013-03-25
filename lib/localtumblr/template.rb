@@ -96,6 +96,8 @@ module Localtumblr
                 when :timestamp
                   @post_variables[:timestamp] = v
                   @post_variables[:date] = Time.at(v)
+                when :post_url
+                  @post_variables[:permalink] = v
                 else
                   @post_variables[k] = v
                 end
