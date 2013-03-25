@@ -15,8 +15,12 @@ module Localtumblr
       req_opts = {
         api_key: consumer_key
       }
-      req_opts[:type] = opts[:type] if opts.key?(:type)
-      req_opts[:tag] = opts[:tag] if opts.key?(:tag)
+      if opts.key?(:id)
+        req_opts[:id] = opts[:id]
+      else
+        req_opts[:type] = opts[:type] if opts.key?(:type)
+        req_opts[:tag] = opts[:tag] if opts.key?(:tag)
+      end
       response = Faraday.get "http://api.tumblr.com/v2/blog/#{hostname}/posts", req_opts
       if response.status == 200
         parse_response(response.body).each do |post|

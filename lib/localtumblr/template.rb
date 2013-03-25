@@ -9,21 +9,23 @@ module Localtumblr
     attr_reader :parsed_template
     attr_accessor :posts
 
-    def self.from_file(filename, args={})
+    def self.from_file(filename, opts={})
       source = ''
       File.open(filename, "r") do |f|
         source = f.read
       end
-      Template.new(source, args)
+      Template.new(source, opts)
     end
 
-    def initialize(template, args={})
+    def initialize(template, opts={})
       @source_template = template
 
-      @debug = args.key?(:debug) ? args[:debug] : false
+      @debug = opts.key?(:debug) ? opts[:debug] : false
+      # @page must be :index or :permalink
+      @page = opts.key?(:page) ? opts[:page] : :index
 
       @tumblr_variables = {}
-      @tumblr_variables[:title] = "The Title" # args[:title]
+      @tumblr_variables[:title] = "The Title" # opts[:title]
       @tumblr_variables[:tag] = "sports"
 
       @tumblr_blocks = {
@@ -118,6 +120,10 @@ module Localtumblr
                 end
               end
             end
+          when 'IndexPage'
+            val = parse(block_content) if @page == :index
+          when 'PermalinkPage'
+            val = parse(block_content) if @page == :permalink
           else
             block_key = block_name.underscore.to_sym
 
