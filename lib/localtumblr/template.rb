@@ -66,7 +66,8 @@ module Localtumblr
       end
     end
 
-    def parse(source=nil, args={})
+    # args includes :photo, :parent
+    def parse(source=nil, parents=[], args={})
       root = source.nil?
       source = root ? @source_template : source
       template = source.dup
@@ -76,11 +77,14 @@ module Localtumblr
       source.scan(r) do |block, block_name, block_content, variable, variable_name|
         i += 1
         if !block.nil?
+          parents << block_name
+
           val = ''
           puts_with_indent "Enter block: #{block_name}"
           inc_indent
 
           case block_name
+          # Post element
           when 'Posts'
             j = 0
 
@@ -102,36 +106,49 @@ module Localtumblr
                   @post_variables[k] = v
                 end
               end
-              val += parse(block_content)
+              val += parse(block_content, parents)
               @post_variables = {}
 
               dec_indent
               puts_with_indent "Exit post ##{j}"
               j += 1
             end
-          when 'Text', 'Photo', 'Panorama', 'Photoset', 'Quote', 'Link', 'Chat', 'Audio', 'Video', 'Answer'
-            if @post_variables.any?
+          # Block elements that occur inside the post element
+          when 'Text', 'Photo', 'Panorama', 'Photoset', 'Photos', 'Quote', 'Link', 'Chat', 'Audio', 'Video', 'Answer'
+            if parents.include? 'Posts'
+            # if @post_variables.any?
               if @post_variables[:type] == block_name.downcase
-                if block_name == 'Photo'
-                  val = ''
-                  @post_variables[:photos].each do |photo|
-                    val += parse(block_content, photo: photo)
+                case block_name
+                when 'Photo'
+                  # There must be only one photo in a post for a Photo element to render.
+                  # Multiple photos are rendered in a Photoset element.
+                  if @post_variables[:photos].count == 1
+                    val = parse(block_content, parents, photo: @post_variables[:photos][0])
                   end
+                when 'Photos'
+                  if parents.include? 'Photoset'
+                    @post_variables[:photos].each do |photo|
+                      val += parse(block_content, parents, photo: photo)
+                    end
+                  end
+                when 'Photoset'
+                  # There must be more than one photo in a post for a Photoset to render.
+                  val = parse(block_content, parents) if @post_variables[:photos].count > 1
                 else
-                  val = parse(block_content)
+                  val = parse(block_content, parents)
                 end
               end
             end
           when 'IndexPage'
-            val = parse(block_content) if @page == :index
+            val = parse(block_content, parents) if @page == :index
           when 'PermalinkPage'
-            val = parse(block_content) if @page == :permalink
+            val = parse(block_content, parents) if @page == :permalink
           else
             block_key = block_name.underscore.to_sym
 
             # TODO: Fix this. Blocks must be enabled/disabled based on settings.
             #if @tumblr_blocks.key?(block_key) && @tumblr_blocks[block_key]
-              val = parse(block_content)
+              val = parse(block_content, parents)
             #end
           end
           rs = /(?<block>\{block:(?<block_name>\w+)\}.*?\{\/block:\k<block_name>\})/m
