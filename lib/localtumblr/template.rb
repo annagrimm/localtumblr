@@ -36,6 +36,7 @@ module Localtumblr
       @posts = []
       @post_variables = {}
       @post_photo_alt_sizes = {
+        '1280' => 5,
         '500' => 4,
         '400' => 3,
         '250' => 2,
@@ -100,8 +101,6 @@ module Localtumblr
                 when :timestamp
                   @post_variables[:timestamp] = v
                   @post_variables[:date] = Time.at(v)
-                when :post_url
-                  @post_variables[:permalink] = v
                 else
                   @post_variables[k] = v
                 end
@@ -159,31 +158,39 @@ module Localtumblr
         else
           puts_with_indent "Variable: #{variable_name} / #{variable_name.underscore.to_sym} = #{@post_variables[variable_name.underscore.to_sym]}"
           val = ''
+
           if @post_variables.any?
             case variable_name
-            when /PhotoURL-(\d{2,3}\w{0,2})/
+            when /PhotoURL-(\d{2,3}\w{0,2}|HighRes)/
               # ***** TODO: PHOTO POSTS MUST BE EXPANDED ALSO INTO INDIVIDUAL PHOTOS *****
               # Test on Tumblr to see if entire block is duplicated or just the photo tags.
               photo = args[:photo]
-              if photo[:alt_sizes].count > @post_photo_alt_sizes[$1]
-                alt_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[$1] + 1)]
+              alt_size_idx = $1 == "HighRes" ? '1280' : $1
+              if photo[:alt_sizes].count > @post_photo_alt_sizes[alt_size_idx]
+                photo_at_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[alt_size_idx] + 1)]
               else
-                alt_size = photo[:alt_sizes].first
+                photo_at_size = photo[:original_size]
               end
-              val = alt_size[:url]
-            when /Photo(Width|Height)-(\d{3})/
+              val = photo_at_size[:url]
+            when /Photo(Width|Height)-(\d{3}|HighRes)/
               photo = args[:photo]
-              if photo[:alt_sizes].count > @post_photo_alt_sizes[$2]
-                alt_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[$2] + 1)]
+              alt_size_idx = $2 == "HighRes" ? '1280' : $2
+              if photo[:alt_sizes].count > @post_photo_alt_sizes[alt_size_idx]
+                photo_at_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[alt_size_idx] + 1)]
               else
-                alt_size = photo[:alt_sizes].first
+                photo_at_size = photo[:original_size]
               end
-              val = alt_size[$1.downcase.to_sym].to_s
+              val = photo_at_size[$1.downcase.to_sym].to_s
             when 'PhotoAlt'
               val = @post_variables[:photos][0][:caption]
-            end
-            if @post_variables.key?(variable_name.underscore.to_sym)
-              val = @post_variables[variable_name.underscore.to_sym]
+            when 'PostType'
+              val = @post_variables[:type]
+            when 'Permalink'
+              val = @post_variables[:post_url]
+            else
+              if @post_variables.key?(variable_name.underscore.to_sym)
+                val = @post_variables[variable_name.underscore.to_sym]
+              end
             end
           end
           if @tumblr_variables.key?(variable_name.underscore.to_sym)
