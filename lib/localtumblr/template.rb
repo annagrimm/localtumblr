@@ -138,6 +138,10 @@ module Localtumblr
                 end
               end
             end
+          when 'Caption'
+            if parents.index { |x| x =~ /Photo|Photoset|Video|Audio/ }
+              val += parse(block_content, parents)
+            end
           when 'IndexPage'
             val = parse(block_content, parents) if @page == :index
           when 'PermalinkPage'
@@ -162,31 +166,42 @@ module Localtumblr
           if @post_variables.any?
             case variable_name
             when /PhotoURL-(\d{2,3}\w{0,2}|HighRes)/
-              # ***** TODO: PHOTO POSTS MUST BE EXPANDED ALSO INTO INDIVIDUAL PHOTOS *****
-              # Test on Tumblr to see if entire block is duplicated or just the photo tags.
-              photo = args[:photo]
-              alt_size_idx = $1 == "HighRes" ? '1280' : $1
-              if photo[:alt_sizes].count > @post_photo_alt_sizes[alt_size_idx]
-                photo_at_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[alt_size_idx] + 1)]
-              else
-                photo_at_size = photo[:original_size]
+              if args.key?(:photo)
+                photo = args[:photo]
+                alt_size_idx = $1 == "HighRes" ? '1280' : $1
+                if photo[:alt_sizes].count > @post_photo_alt_sizes[alt_size_idx]
+                  photo_at_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[alt_size_idx] + 1)]
+                else
+                  photo_at_size = photo[:original_size]
+                end
+                val = photo_at_size[:url]
               end
-              val = photo_at_size[:url]
             when /Photo(Width|Height)-(\d{3}|HighRes)/
-              photo = args[:photo]
-              alt_size_idx = $2 == "HighRes" ? '1280' : $2
-              if photo[:alt_sizes].count > @post_photo_alt_sizes[alt_size_idx]
-                photo_at_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[alt_size_idx] + 1)]
-              else
-                photo_at_size = photo[:original_size]
+              if args.key?(:photo)
+                photo = args[:photo]
+                alt_size_idx = $2 == "HighRes" ? '1280' : $2
+                if photo[:alt_sizes].count > @post_photo_alt_sizes[alt_size_idx]
+                  photo_at_size = photo[:alt_sizes][0 - (@post_photo_alt_sizes[alt_size_idx] + 1)]
+                else
+                  photo_at_size = photo[:original_size]
+                end
+                val = photo_at_size[$1.downcase.to_sym].to_s
               end
-              val = photo_at_size[$1.downcase.to_sym].to_s
             when 'PhotoAlt'
-              val = @post_variables[:photos][0][:caption]
+              if args.key?(:photo)
+                photo = args[:photo]
+                val = photo[:caption]
+              end
             when 'PostType'
               val = @post_variables[:type]
             when 'Permalink'
               val = @post_variables[:post_url]
+            when 'Caption'
+              if parents.include?('Caption')
+                val = @post_variables[:caption]
+              end
+              # If there's no caption, the entire surrounding caption block must be blank.
+              return '' if val.blank?
             else
               if @post_variables.key?(variable_name.underscore.to_sym)
                 val = @post_variables[variable_name.underscore.to_sym]
