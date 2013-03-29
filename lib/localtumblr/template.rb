@@ -26,7 +26,6 @@ module Localtumblr
 
       @tumblr_variables = {}
       @tumblr_variables[:title] = "The Title" # opts[:title]
-      @tumblr_variables[:tag] = "sports"
 
       @tumblr_blocks = {
         index_page: true,
@@ -142,6 +141,18 @@ module Localtumblr
             if parents.index { |x| x =~ /Photo|Photoset|Video|Audio/ }
               val += parse(block_content, parents)
             end
+          when 'HasTags'
+            if parents.include? 'Posts'
+              val = parse(block_content, parents)
+            end
+          when 'Tags'
+            if parents.include? 'HasTags'
+              @post_variables[:tags].each do |tag|
+                val += parse(block_content, parents, tag: tag)
+              end
+              # If there are no tags, then do not render this entire block.
+              return '' if val.blank?
+            end
           when 'IndexPage'
             val = parse(block_content, parents) if @page == :index
           when 'PermalinkPage'
@@ -200,8 +211,10 @@ module Localtumblr
               if parents.include?('Caption')
                 val = @post_variables[:caption]
               end
-              # If there's no caption, the entire surrounding caption block must be blank.
+              # If there is no caption, then do not render the entire caption block.
               return '' if val.blank?
+            when 'Tag'
+              val = args[:tag] if args.key?(:tag)
             else
               if @post_variables.key?(variable_name.underscore.to_sym)
                 val = @post_variables[variable_name.underscore.to_sym]
