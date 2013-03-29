@@ -49,7 +49,7 @@ describe Localtumblr::Template do
       it "expands the contents of a photo tag once for each photo in the page" do
         html_doc = Nokogiri::HTML(template_with_photo_posts.parse.to_s)
         html_doc_photos = html_doc.css("#posts > .post > .photo")
-        expect(html_doc_photos).to have(posts.count).items
+        expect(html_doc_photos).to have(posts.count).photo_posts
       end
     end
   end
