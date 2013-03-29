@@ -221,7 +221,6 @@ module Localtumblr
       end
       template
     end
-    alias_method :to_html, :parse
 
     def to_s
       raise UnparsedTemplatedError, UNPARSED_TEMPLATE_ERROR_MSG if @parsed_template.nil?
