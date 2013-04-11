@@ -115,7 +115,11 @@ module Localtumblr
           when 'Text', 'Photo', 'Panorama', 'Photoset', 'Photos', 'Quote', 'Link', 'Chat', 'Audio', 'Video', 'Answer'
             if parents.include? 'Posts'
             # if @post_variables.any?
-              if @post_variables[:type] == block_name.downcase
+              # Photoset and Photos are variants of the Photo type in the API
+              # and the name must be referred to as Photo.
+              block_in_api = block_name.downcase
+              block_in_api = "photo" if block_in_api == "photoset" || block_in_api == "photos"
+              if @post_variables[:type] == block_in_api
                 case block_name
                 when 'Photo'
                   # There must be only one photo in a post for a Photo element to render.

@@ -247,6 +247,25 @@
       </div>
       {/block:Photoset}
 
+      {block:Photoset}
+      <div class="photoset photoset-photos">
+        {block:Photos}
+        <div class="photos">
+          <div class="image">
+            {LinkOpenTag}<img src="{PhotoURL-500}" alt="{PhotoAlt}"/>{LinkCloseTag}
+            {block:HighRes}<a href="{PhotoURL-HighRes}" class="hi-res">{lang:Click for high-res photo}</a>{/block:HighRes}
+          </div>
+
+          {block:Caption}
+          <div class="caption">
+            {Caption}
+          </div>
+          {/block:Caption}
+        </div>
+        {block:Photos}
+      </div>
+      {/block:Photoset}
+
       {block:Quote}
       <div class="quote">
         <big>&ldquo;</big>
