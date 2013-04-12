@@ -7,6 +7,8 @@ module Localtumblr
     def initialize(attrs)
       attrs.each do |k, v|
         self[k] = v
+        instance_variable_set("@#{k}", self[k])
+        self.class.send(:attr_reader, k)
       end
     end
 

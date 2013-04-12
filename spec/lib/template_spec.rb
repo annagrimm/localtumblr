@@ -40,9 +40,10 @@ describe Localtumblr::Template do
       let(:posts) do
         VCR.use_cassette('photo_posts') do
           # Get posts with exactly one photo.
-          Localtumblr::Post.from_blog(tumblr_base_hostname, tumblr_api_key, type: 'photo').select { |x| x[:photos].count == 1 }
+          Localtumblr::Post.from_blog(tumblr_base_hostname, tumblr_api_key, type: 'photo').select { |x| x.photos.count == 1 }
         end
       end
+
       let(:template_with_photo_posts) do
         template.posts = posts
         template
@@ -59,33 +60,32 @@ describe Localtumblr::Template do
       let(:posts) do
         VCR.use_cassette('photo_posts') do
           # Get posts with more than one photo.
-          Localtumblr::Post.from_blog(tumblr_base_hostname, tumblr_api_key, type: 'photo').select { |x| x[:photos].count > 1 }
+          Localtumblr::Post.from_blog(tumblr_base_hostname, tumblr_api_key, type: 'photo').select { |x| x.photos.count > 1 }
         end
       end
+
       let(:template_with_photoset_posts) do
         template.posts = posts
         template
       end
 
-      #it "expands the contents of a photoset tag if the post has more than one photo" do
-      #  html_doc = Nokogiri::HTML(template_with_photoset_posts.parse.to_s)
-      #  html_doc_all_photos_in_photosets = html_doc.css("#posts > .post > .photoset-photos")
-      #  expected_photo_count = 0
-      #  actual_photo_count = 0
-      #  posts.each do |post|
-      #    photo_count += post[:photos].count
-      #    actual_photo_count +=
-      #  end
-      #  expect(html_doc_all_photos_in_photosets).to have(photo_count).photos_in_all_photosets
-      #end
+      it "expands the contents of a photoset tag if the post has more than one photo" do
+        html_doc = Nokogiri::HTML(template_with_photoset_posts.parse.to_s)
+        photosets = html_doc.css("#posts > .post > .photoset-photos")
+        photosets.each do |photoset|
+          photos_in_photoset = photoset.css(".photo")
+          expect(photos_in_photoset).to have_at_least(2).photos
+        end
+      end
 
       it "expands the contents of a photo tag once for each photo in a photoset post" do
         html_doc = Nokogiri::HTML(template_with_photoset_posts.parse.to_s)
-        html_doc_photosets_with_photos = html_doc.css("#posts > .post > .photoset-photos")
+        html_doc_photosets_with_photos = html_doc.css("#posts > .post > .photoset-photos > .photo")
+        photo_count = 0
         posts.each do |post|
-          html_doc_photos_in_photoset = html_doc_photosets_with_photos.css(".photos")
-          expect(html_doc_photos_in_photoset).to have(post[:photos].count).photos_per_photoset
+          photo_count += post.photos.count
         end
+        expect(html_doc_photosets_with_photos).to have(photo_count).photos
       end
     end
   end

@@ -118,7 +118,8 @@ module Localtumblr
               # Photoset and Photos are variants of the Photo type in the API
               # and the name must be referred to as Photo.
               block_in_api = block_name.downcase
-              block_in_api = "photo" if block_in_api == "photoset" || block_in_api == "photos"
+              block_in_api = "photo" if (block_in_api == "photoset" || block_in_api == "photos")
+
               if @post_variables[:type] == block_in_api
                 case block_name
                 when 'Photo'
@@ -142,7 +143,7 @@ module Localtumblr
               end
             end
           when 'Caption'
-            if parents.index { |x| x =~ /Photo|Photoset|Video|Audio/ }
+            if parents.index { |x| x =~ /Photos?|Photoset|Video|Audio/ }
               val += parse(block_content, parents)
             end
           when 'HasTags'
