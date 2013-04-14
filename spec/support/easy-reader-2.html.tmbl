@@ -153,7 +153,8 @@
     {/block:DayPage}
 
     {block:TagPage}
-      <h5 id="tagpageblurb">{lang:Showing posts tagged Tag 3}</h5>
+      <h5 id="tagpageblurb">Posts tagged "{Tag}"</h5>
+      <!--<h5 id="tagpageblurb">{lang:Showing posts tagged Tag 3}</h5>-->
     {/block:TagPage}
 
     {block:SearchPage}
@@ -305,11 +306,11 @@
 
       <ul class="post-footer">
         {block:NoteCount}<li><a href="{Permalink}#note-container">{NoteCountWithLabel}</a></li>{/block:NoteCount}
-        <li><a href="{Permalink}">{lang:Permalink}</a></li>
+        <li class="permalink"><a href="{Permalink}">{lang:Permalink}</a></li>
         {block:IfDisqusShortname}<li><a href="{Permalink}#disqus_thread">{lang:Comments}</a></li>{/block:IfDisqusShortname}
         {block:Date}<li>{lang:Posted at FormattedTime}</li>{/block:Date}
         {block:HasTags}
-        <li>{lang:Tagged}:{block:Tags} <a href="{TagURL}" class="tag">{Tag}</a>{/block:Tags}</li>
+        <li class="tags">{lang:Tagged}:{block:Tags} <a href="{TagURL}" class="tag">{Tag}</a>{/block:Tags}</li>
         {/block:HasTags}
       </ul> <!-- end .post-footer -->
     </div> <!-- end .post -->

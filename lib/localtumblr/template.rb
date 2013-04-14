@@ -28,8 +28,7 @@ module Localtumblr
       @tumblr_variables[:title] = "The Title" # opts[:title]
 
       @tumblr_blocks = {
-        index_page: true,
-        tag_page:   true # false
+        index_page: true
       }
 
       @posts = []
